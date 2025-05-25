@@ -46,6 +46,13 @@ const settingsSlice = createSlice({
   },
 });
 
+// Selectors
+export const selectIsNumberApproved = (
+  state: {settings: SettingsState},
+  phoneNumber: string,
+) =>
+  state.settings.approvedNumbers.some(number => number.number === phoneNumber);
+
 export const {addApprovedNumber, removeApprovedNumber, updateApprovedNumber} =
   settingsSlice.actions;
 

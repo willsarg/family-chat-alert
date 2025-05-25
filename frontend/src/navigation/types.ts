@@ -3,7 +3,21 @@ export type RootStackParamList = {
   ChatDetail: {number: string};
   ChatMessage: {number: string};
   FamilyList: undefined;
-  Settings: undefined;
+  Settings: {
+    addApprovedNumber?: {
+      number: string;
+      showModal: boolean;
+    };
+  };
+  SettingsTab: {
+    screen: 'Settings';
+    params?: {
+      addApprovedNumber?: {
+        number: string;
+        showModal: boolean;
+      };
+    };
+  };
 };
 
 export type RootTabParamList = {
