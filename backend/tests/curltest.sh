@@ -2,7 +2,7 @@
 
 # Test against localhost
 echo "Testing against localhost..."
-curl -X POST http://localhost:5000/api/receiveText \
+curl -v -X POST http://localhost:5001/api/receiveText \
   -H "Content-Type: application/json" \
   -d '{
     "number": "1234567890",
@@ -17,7 +17,7 @@ curl -X POST http://localhost:5000/api/receiveText \
 
 echo -e "\n\nTesting against production..."
 # Original production test
-curl -X POST https://family-chat-alert.onrender.com/api/receiveText \
+curl -v -X POST https://family-chat-alert.onrender.com/api/receiveText \
   -H "Content-Type: application/json" \
   -d '{
     "number": "1234567890",
