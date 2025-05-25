@@ -1,4 +1,6 @@
-import React, {useState} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   FlatList,
@@ -11,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
+import {RootStackParamList} from '../../navigation/types';
 import {RootState} from '../../store';
 import {
   addApprovedNumber,
@@ -19,8 +22,12 @@ import {
 } from '../../store/slices/settingsSlice';
 import type {ApprovedNumber} from '../../store/slices/types';
 
-const SettingsList = () => {
+type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
+
+const SettingsList: React.FC<Props> = () => {
   const dispatch = useDispatch();
+  const route = useRoute<Props['route']>();
+  const navigation = useNavigation<Props['navigation']>();
   const approvedNumbers = useSelector(
     (state: RootState) => state.settings.approvedNumbers,
   );
@@ -30,6 +37,20 @@ const SettingsList = () => {
   );
   const [formData, setFormData] = useState({name: '', number: ''});
   const [smsPermission, setSmsPermission] = useState<string>('');
+
+  // Handle pre-filled number from navigation
+  useEffect(() => {
+    const addApprovedNumberParams = route.params?.addApprovedNumber;
+    if (addApprovedNumberParams?.showModal) {
+      setFormData(prev => ({
+        ...prev,
+        number: addApprovedNumberParams.number,
+      }));
+      setModalVisible(true);
+      // Clear the navigation params after using them
+      navigation.setParams({addApprovedNumber: undefined});
+    }
+  }, [route.params, navigation]);
 
   const checkSmsPermission = async () => {
     try {
