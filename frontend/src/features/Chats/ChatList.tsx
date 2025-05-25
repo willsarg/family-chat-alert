@@ -31,7 +31,7 @@ const ChatList: React.FC<ChatListProps> = ({navigation}) => {
     return (
       <TouchableOpacity
         style={styles.chatItem}
-        onPress={() => navigation.navigate('ChatDetail', {number})}>
+        onPress={() => navigation.navigate('ChatMessage', {number})}>
         <View style={styles.chatHeader}>
           <Text style={styles.phoneNumber}>{number}</Text>
           {chat.flagged && (

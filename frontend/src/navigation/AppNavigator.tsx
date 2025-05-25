@@ -7,6 +7,7 @@ import React from 'react';
 import {RootStackParamList, RootTabParamList} from './types';
 
 // Screens
+import ChatMessage from '../features/Chats/ChatMessage';
 import ChatListScreen from '../screens/ChatListScreen';
 import FamilyListScreen from '../screens/FamilyListScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -30,6 +31,13 @@ const ChatStack = () => {
         name="ChatList"
         component={ChatListScreen}
         options={{title: 'Chats'}}
+      />
+      <Stack.Screen
+        name="ChatMessage"
+        component={ChatMessage}
+        options={({route}) => ({
+          title: route.params.number,
+        })}
       />
     </Stack.Navigator>
   );
