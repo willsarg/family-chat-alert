@@ -1,28 +1,19 @@
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {RootStackParamList} from '../navigation/types';
+import {SafeAreaView, StyleSheet} from 'react-native';
+import SettingsList from '../features/Settings/SettingsList';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
-
-const SettingsScreen: React.FC<Props> = () => {
+const SettingsScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
-    </View>
+    <SafeAreaView style={styles.container}>
+      <SettingsList />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
   },
 });
 
