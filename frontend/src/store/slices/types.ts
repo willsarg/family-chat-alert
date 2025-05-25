@@ -23,3 +23,13 @@ export interface FamilyMember {
 export interface FamilyState {
   members: FamilyMember[];
 }
+
+export interface ApprovedNumber {
+  id: string;
+  number: string;
+  name: string;
+}
+
+export interface SettingsState {
+  approvedNumbers: ApprovedNumber[];
+}
