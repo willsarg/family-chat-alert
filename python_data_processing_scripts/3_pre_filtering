@@ -1,0 +1,384 @@
+import re
+import json
+import logging
+from datetime import datetime
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from enum import Enum
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+
+# Download required NLTK data (run once)
+try:
+    nltk.data.find('tokenizers/punkt')
+    nltk.data.find('corpora/stopwords')
+    nltk.data.find('vader_lexicon')
+except LookupError:
+    nltk.download('punkt')
+    nltk.download('stopwords')
+    nltk.download('vader_lexicon')
+
+class RiskLevel(Enum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+@dataclass
+class FraudAlert:
+    risk_level: RiskLevel
+    confidence_score: float
+    fraud_type: str
+    warning_message: str
+    red_flags: List[str]
+    recommendations: List[str]
+    timestamp: datetime
+
+class ElderlyFraudDetector:
+    def __init__(self):
+        self.sentiment_analyzer = SentimentIntensityAnalyzer()
+        self.setup_logging()
+       
+        # Common scam patterns targeting elderly
+        self.scam_patterns = {
+            'grandparent_scam': {
+                'keywords': ['grandson', 'granddaughter', 'grandchild', 'emergency', 'jail', 'hospital',
+                           'accident', 'money', 'wire', 'dont tell', "don't tell", 'urgent', 'help me'],
+                'phrases': [r'this is your grand\w+', r'i need money', r'in jail', r'car accident',
+                          r"don't tell (?:mom|dad|anyone)", r'wire money', r'send money']
+            },
+            'irs_scam': {
+                'keywords': ['irs', 'internal revenue', 'tax', 'owe', 'arrest', 'warrant', 'lawsuit',
+                           'immediate payment', 'government', 'federal', 'audit'],
+                'phrases': [r'irs.*(?:arrest|warrant)', r'owe.*taxes', r'legal action.*tax',
+                          r'immediate payment.*irs', r'tax.*lawsuit']
+            },
+            'tech_support': {
+                'keywords': ['microsoft', 'windows', 'virus', 'infected', 'computer', 'refund',
+                           'tech support', 'remote access', 'pop-up', 'security alert'],
+                'phrases': [r'computer.*(?:virus|infected)', r'microsoft.*refund', r'tech support.*call',
+                          r'remote access.*computer', r'security.*alert']
+            },
+            'romance_scam': {
+                'keywords': ['love', 'soulmate', 'military', 'overseas', 'emergency', 'money',
+                           'western union', 'gift cards', 'lonely', 'destiny'],
+                'phrases': [r'fell in love', r'military.*overseas', r'need money.*emergency',
+                          r'western union', r'buy.*gift cards', r'destiny.*together']
+            },
+            'medicare_scam': {
+                'keywords': ['medicare', 'medical', 'insurance', 'benefits', 'card', 'social security',
+                           'verify', 'update', 'expired', 'suspended'],
+                'phrases': [r'medicare.*(?:card|benefits)', r'verify.*social security',
+                          r'medicare.*(?:expired|suspended)', r'update.*insurance']
+            },
+            'lottery_scam': {
+                'keywords': ['winner', 'lottery', 'prize', 'million', 'congratulations', 'claim',
+                           'processing fee', 'taxes', 'award', 'sweepstakes'],
+                'phrases': [r'won.*(?:lottery|prize)', r'million.*(?:prize|award)',
+                          r'congratulations.*winner', r'processing fee.*claim']
+            }
+        }
+       
+        # Urgency indicators
+        self.urgency_patterns = [
+            r'urgent', r'immediate', r'asap', r'right now', r'today only',
+            r'limited time', r'expires? (?:today|soon)', r'act (?:now|fast)',
+            r'don\'t wait', r'time sensitive', r'deadline'
+        ]
+       
+        # Money request patterns
+        self.money_patterns = [
+            r'send money', r'wire transfer', r'western union', r'moneygram',
+            r'gift cards?', r'bitcoin', r'cryptocurrency', r'cash app',
+            r'venmo', r'paypal', r'bank transfer', r'routing number'
+        ]
+       
+        # Personal info requests
+        self.personal_info_patterns = [
+            r'social security', r'ssn', r'bank account', r'credit card',
+            r'pin', r'password', r'date of birth', r'mother\'s maiden',
+            r'verify.*account', r'confirm.*identity'
+        ]
+       
+        # Emotional manipulation patterns
+        self.emotional_patterns = [
+            r'don\'t tell anyone', r'keep (?:this|it) (?:secret|private)',
+            r'trust me', r'you\'re the only one', r'special (?:offer|deal)',
+            r'chosen', r'selected', r'exclusive'
+        ]
+
+    def setup_logging(self):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler('fraud_detection.log'),
+                logging.StreamHandler()
+            ]
+        )
+        self.logger = logging.getLogger(__name__)
+
+    def analyze_message(self, message: str, sender_info: Optional[Dict] = None) -> FraudAlert:
+        """Main method to analyze a message for fraud indicators"""
+        message_lower = message.lower()
+        red_flags = []
+        fraud_indicators = {}
+       
+        # Check for scam patterns
+        for scam_type, patterns in self.scam_patterns.items():
+            score = self._check_scam_pattern(message_lower, patterns)
+            if score > 0:
+                fraud_indicators[scam_type] = score
+                red_flags.extend([f"Potential {scam_type.replace('_', ' ')} indicators"])
+       
+        # Check urgency indicators
+        urgency_score = self._check_patterns(message_lower, self.urgency_patterns)
+        if urgency_score > 0:
+            red_flags.append("Urgency pressure tactics detected")
+           
+        # Check money requests
+        money_score = self._check_patterns(message_lower, self.money_patterns)
+        if money_score > 0:
+            red_flags.append("Money transfer requests detected")
+           
+        # Check personal info requests
+        info_score = self._check_patterns(message_lower, self.personal_info_patterns)
+        if info_score > 0:
+            red_flags.append("Personal information requests detected")
+           
+        # Check emotional manipulation
+        emotion_score = self._check_patterns(message_lower, self.emotional_patterns)
+        if emotion_score > 0:
+            red_flags.append("Emotional manipulation tactics detected")
+       
+        # Analyze sentiment for manipulation
+        sentiment = self.sentiment_analyzer.polarity_scores(message)
+       
+        # Additional red flags
+        if self._check_suspicious_links(message):
+            red_flags.append("Suspicious links detected")
+           
+        if self._check_poor_grammar(message):
+            red_flags.append("Poor grammar/spelling (common in scams)")
+           
+        if self._check_generic_greetings(message_lower):
+            red_flags.append("Generic greeting (mass scam indicator)")
+       
+        # Calculate overall risk
+        risk_level, confidence, fraud_type = self._calculate_risk(
+            fraud_indicators, urgency_score, money_score,
+            info_score, emotion_score, sentiment
+        )
+       
+        # Generate alert
+        alert = FraudAlert(
+            risk_level=risk_level,
+            confidence_score=confidence,
+            fraud_type=fraud_type,
+            warning_message=self._generate_warning(risk_level, fraud_type),
+            red_flags=red_flags,
+            recommendations=self._generate_recommendations(risk_level, fraud_type),
+            timestamp=datetime.now()
+        )
+       
+        self._log_analysis(alert, message[:100])
+        return alert
+
+    def _check_scam_pattern(self, message: str, patterns: Dict) -> float:
+        """Check message against specific scam patterns"""
+        keyword_matches = sum(1 for keyword in patterns['keywords'] if keyword in message)
+        phrase_matches = sum(1 for phrase in patterns['phrases'] if re.search(phrase, message))
+       
+        total_possible = len(patterns['keywords']) + len(patterns['phrases'])
+        return (keyword_matches + phrase_matches * 2) / total_possible if total_possible > 0 else 0
+
+    def _check_patterns(self, message: str, patterns: List[str]) -> float:
+        """Check message against list of regex patterns"""
+        matches = sum(1 for pattern in patterns if re.search(pattern, message))
+        return matches / len(patterns) if patterns else 0
+
+    def _check_suspicious_links(self, message: str) -> bool:
+        """Check for suspicious URLs"""
+        url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+        urls = re.findall(url_pattern, message)
+       
+        suspicious_domains = [
+            'bit.ly', 'tinyurl', 'shorturl', 't.co', 'goo.gl', 'ow.ly',
+            'secure-bank', 'secure-paypal', 'urgent-update'
+        ]
+       
+        return any(any(domain in url for domain in suspicious_domains) for url in urls)
+
+    def _check_poor_grammar(self, message: str) -> bool:
+        """Check for poor grammar indicators common in scams"""
+        poor_grammar_indicators = [
+            r'\b(?:recieve|recive)\b',  # receive misspelled
+            r'\b(?:goverment|govenment)\b',  # government misspelled
+            r'\b(?:transfere|tranfer)\b',  # transfer misspelled
+            r'[.]{3,}',  # excessive periods
+            r'[!]{2,}',  # excessive exclamation marks
+            r'\b(?:am|is|are)\s+been\b',  # incorrect tense
+        ]
+       
+        return any(re.search(pattern, message, re.IGNORECASE) for pattern in poor_grammar_indicators)
+
+    def _check_generic_greetings(self, message: str) -> bool:
+        """Check for generic greetings used in mass scams"""
+        generic_patterns = [
+            r'dear (?:sir|madam|customer|friend|beneficiary)',
+            r'dear valued customer',
+            r'dear winner',
+            r'dear lucky winner'
+        ]
+       
+        return any(re.search(pattern, message) for pattern in generic_patterns)
+
+    def _calculate_risk(self, fraud_indicators: Dict, urgency: float, money: float,
+                      info: float, emotion: float, sentiment: Dict) -> Tuple[RiskLevel, float, str]:
+        """Calculate overall risk level and confidence"""
+       
+        # Base score from fraud indicators
+        max_fraud_score = max(fraud_indicators.values()) if fraud_indicators else 0
+        fraud_type = max(fraud_indicators.keys(), key=fraud_indicators.get) if fraud_indicators else "general"
+       
+        # Weight different factors
+        weighted_score = (
+            max_fraud_score * 0.4 +
+            urgency * 0.2 +
+            money * 0.2 +
+            info * 0.15 +
+            emotion * 0.05
+        )
+       
+        # Adjust for sentiment (overly positive can be suspicious)
+        if sentiment['compound'] > 0.5:  # Very positive
+            weighted_score += 0.1
+       
+        confidence = min(weighted_score * 100, 95)  # Cap at 95%
+       
+        # Determine risk level
+        if weighted_score >= 0.7:
+            risk_level = RiskLevel.CRITICAL
+        elif weighted_score >= 0.5:
+            risk_level = RiskLevel.HIGH
+        elif weighted_score >= 0.3:
+            risk_level = RiskLevel.MEDIUM
+        else:
+            risk_level = RiskLevel.LOW
+           
+        return risk_level, confidence, fraud_type
+
+    def _generate_warning(self, risk_level: RiskLevel, fraud_type: str) -> str:
+        """Generate appropriate warning message"""
+        warnings = {
+            RiskLevel.CRITICAL: f"🚨 CRITICAL FRAUD ALERT: This appears to be a {fraud_type.replace('_', ' ')} scam. DO NOT respond or provide any information!",
+            RiskLevel.HIGH: f"⚠️ HIGH RISK: This message shows strong signs of a {fraud_type.replace('_', ' ')} scam. Be very cautious!",
+            RiskLevel.MEDIUM: f"⚠️ CAUTION: This message contains some suspicious elements. Verify independently before taking action.",
+            RiskLevel.LOW: "ℹ️ This message appears mostly legitimate but contains minor suspicious elements."
+        }
+        return warnings[risk_level]
+
+    def _generate_recommendations(self, risk_level: RiskLevel, fraud_type: str) -> List[str]:
+        """Generate safety recommendations"""
+        base_recommendations = [
+            "Never give out personal information (SSN, bank details, passwords)",
+            "Verify caller identity through official channels",
+            "Don't click suspicious links or download attachments",
+            "Consult with family members or trusted friends before taking action"
+        ]
+       
+        if risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]:
+            base_recommendations.extend([
+                "Block this sender immediately",
+                "Report to authorities (FTC, local police)",
+                "Do not send money or gift cards",
+                "Contact your bank if you shared financial information"
+            ])
+           
+        if fraud_type == "grandparent_scam":
+            base_recommendations.append("Call your grandchild directly to verify any emergency")
+        elif fraud_type == "irs_scam":
+            base_recommendations.append("Contact the IRS directly at their official number")
+        elif fraud_type == "tech_support":
+            base_recommendations.append("Hang up and contact tech support through official channels")
+           
+        return base_recommendations
+
+    def _log_analysis(self, alert: FraudAlert, message_preview: str):
+        """Log the analysis results"""
+        self.logger.info(f"Fraud Analysis - Risk: {alert.risk_level.value}, "
+                        f"Confidence: {alert.confidence_score:.1f}%, "
+                        f"Type: {alert.fraud_type}, "
+                        f"Message: {message_preview}...")
+
+    def batch_analyze(self, messages: List[Dict]) -> List[FraudAlert]:
+        """Analyze multiple messages"""
+        results = []
+        for msg_data in messages:
+            message = msg_data.get('content', '')
+            sender_info = msg_data.get('sender_info', {})
+            alert = self.analyze_message(message, sender_info)
+            results.append(alert)
+        return results
+
+    def generate_report(self, alerts: List[FraudAlert]) -> Dict:
+        """Generate summary report"""
+        total_alerts = len(alerts)
+        risk_counts = {level: 0 for level in RiskLevel}
+        fraud_types = {}
+       
+        for alert in alerts:
+            risk_counts[alert.risk_level] += 1
+            fraud_types[alert.fraud_type] = fraud_types.get(alert.fraud_type, 0) + 1
+       
+        return {
+            'total_messages_analyzed': total_alerts,
+            'risk_distribution': {level.value: count for level, count in risk_counts.items()},
+            'common_fraud_types': fraud_types,
+            'high_risk_percentage': (risk_counts[RiskLevel.HIGH] + risk_counts[RiskLevel.CRITICAL]) / total_alerts * 100 if total_alerts > 0 else 0
+        }
+
+# Example usage and testing
+def main():
+    detector = ElderlyFraudDetector()
+   
+    # Test messages
+    test_messages = [
+        "Hi Grandma, this is your grandson. I'm in jail and need $500 for bail. Please don't tell mom and dad. Wire the money to Western Union right away!",
+       
+        "This is the IRS. You owe $2,847 in back taxes. If you don't pay immediately, we will issue a warrant for your arrest. Call 555-0123 now!",
+       
+        "CONGRATULATIONS! You've won $1,000,000 in the International Lottery! To claim your prize, pay a $500 processing fee via gift cards.",
+       
+        "Hi dear, I saw your profile and think we're soulmates. I'm a US soldier stationed overseas. Can you help me with an emergency?",
+       
+        "Your computer has been infected with a virus. Call Microsoft tech support at 555-0199 for immediate assistance.",
+       
+        "Hello, how are you today? I hope this message finds you well."
+    ]
+   
+    print("=== ELDERLY FRAUD DETECTION SYSTEM ===\n")
+   
+    alerts = []
+    for i, message in enumerate(test_messages, 1):
+        print(f"Message {i}: {message[:50]}...")
+        alert = detector.analyze_message(message)
+        alerts.append(alert)
+       
+        print(f"Risk Level: {alert.risk_level.value}")
+        print(f"Confidence: {alert.confidence_score:.1f}%")
+        print(f"Fraud Type: {alert.fraud_type}")
+        print(f"Warning: {alert.warning_message}")
+        print(f"Red Flags: {', '.join(alert.red_flags) if alert.red_flags else 'None'}")
+        print(f"Recommendations: {len(alert.recommendations)} safety tips provided")
+        print("-" * 50)
+   
+    # Generate report
+    report = detector.generate_report(alerts)
+    print("\n=== ANALYSIS REPORT ===")
+    print(json.dumps(report, indent=2))
+
+if __name__ == "__main__":
+    main()
