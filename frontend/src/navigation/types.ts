@@ -3,3 +3,9 @@ export type RootStackParamList = {
   FamilyList: undefined;
   Settings: undefined;
 };
+
+export type RootTabParamList = {
+  ChatTab: undefined;
+  FamilyTab: undefined;
+  SettingsTab: undefined;
+};
