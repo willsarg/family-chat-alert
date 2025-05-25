@@ -9,6 +9,10 @@
     "android": "react-native run-android"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-native-fontawesome": "^0.3.2",
+    "@react-navigation/bottom-tabs": "^7.3.13",
     "@react-navigation/drawer": "^7.3.12",
     "@react-navigation/native": "^7.1.9",
     "@react-navigation/native-stack": "^7.3.13",
@@ -19,6 +23,7 @@
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "^5.4.1",
     "react-native-screens": "^4.10.0",
+    "react-native-svg": "^15.12.0",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1"
   },
