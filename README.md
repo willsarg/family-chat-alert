@@ -44,13 +44,13 @@ Identify and block potential scams in text conversations to protect our senior u
 ## 💡 Tech Stack
 - **Frontend**: React Native  
 - **Backend**: Node.js, Express  
-- **AI**: OpenAI GPT-4 API  
+- **AI**: Perplexity  
 - **Database**: MongoDB  
 
 ## ⚙️ Setup
 1. Clone the repo:  
    ```bash
-   git clone https://github.com/yourorg/family-chat-alert.git
+   git clone https://github.com/willsarg/family-chat-alert.git
    ```  
 2. Install dependencies:  
    ```bash
