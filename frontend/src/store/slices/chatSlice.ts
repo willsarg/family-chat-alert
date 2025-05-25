@@ -23,9 +23,16 @@ const chatSlice = createSlice({
       }>,
     ) => {
       const {number, message} = action.payload;
-      if (state[number]) {
-        state[number].messages.push(message);
+      if (!state[number]) {
+        // Create new chat if it doesn't exist
+        state[number] = {
+          risk_level: 'low',
+          flagged: false,
+          flag_label: '',
+          messages: [],
+        };
       }
+      state[number].messages.push(message);
     },
     updateRiskLevel: (
       state,
