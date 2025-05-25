@@ -6,7 +6,8 @@ from typing import Union
 
 # === CONFIG ===
 MODEL = "llama3-70b-8192"
-client = Groq(api_key="")
+# Get the API key from the environment variable
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def groq_predict_label(text):
     """Classify text as ham, spam, or smishing using Groq."""
