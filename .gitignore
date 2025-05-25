@@ -173,3 +173,204 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .DS_Store
+
+# React Native / **
+# Dependencies
+**/node_modules/
+**/.pnp
+**/.pnp.js
+
+# Testing
+**/coverage/
+
+# Production
+**/build/
+**/dist/
+
+# React Native
+**/.expo/
+**/npm-debug.*
+**/*.jks
+**/*.p8
+**/*.p12
+**/*.key
+**/*.mobileprovision
+**/*.orig.*
+**/web-build/
+
+# Metro
+**/.metro-health-check*
+**/metro.config.js.temp*
+
+# Android/IntelliJ
+**/android/.gradle/
+**/android/local.properties
+**/android/*.iml
+**/android/.idea/
+**/android/app/.cxx/
+**/android/.settings/
+**/android/.project
+**/android/.classpath
+**/android/app/build/
+**/android/build/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/gradle/wrapper/gradle-wrapper.jar
+**/android/GeneratedPluginRegistrant.java
+
+# iOS
+**/ios/Pods/
+**/ios/build/
+**/ios/*.xcworkspace
+**/ios/*.xcodeproj
+**/ios/*.pbxuser
+**/ios/*.mode1v3
+**/ios/*.mode2v3
+**/ios/*.perspectivev3
+**/ios/*.xcuserstate
+**/ios/project.xcworkspace
+**/ios/xcuserdata/
+**/ios/.generated/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# macOS
+**/.DS_Store
+**/*.pem
+
+# local env files
+**/.env*.local
+**/.env
+
+# typescript
+**/*.tsbuildinfo
+**/.next/
+**/out/
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+
+# Temporary files
+**/.tmp/
+**/.temp/
+**/*.log
+**/*.log.*
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.watchmanconfig
+**/.watchmanconfig.local
+
+
+# OSX
+#
+.DS_Store
+
+# Xcode
+#
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+**/.xcode.env.local
+
+# Android/IntelliJ
+#
+build/
+.idea
+.gradle
+local.properties
+*.iml
+*.hprof
+.cxx/
+*.keystore
+!debug.keystore
+.kotlin/
+
+# node.js
+#
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
+# Bundle artifact
+*.jsbundle
+
+# Ruby / CocoaPods
+/ios/Pods/
+/vendor/bundle/
+/.bundle/
+/**/vendor/
+/**/vendor/bundle/
+/**/.bundle/
+/**/Gemfile.lock
+
+# Testing
+/coverage
+
+# Production
+/build
+
+# Misc
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Metro
+.metro-health-check*
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Local Netlify folder
+.netlify
