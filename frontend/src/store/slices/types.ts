@@ -13,3 +13,13 @@ export interface ChatState {
 export interface ChatEntity {
   [number: string]: ChatState;
 }
+
+export interface FamilyMember {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface FamilyState {
+  members: FamilyMember[];
+}
