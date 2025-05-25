@@ -1,10 +1,10 @@
-import json
 from typing import Dict, Any
 from groq import Groq
+import os
 
 # === CONFIG ===
 MODEL = "llama3-70b-8192"
-client = Groq(api_key="")  # Insert your API key
+client = Groq(api_key=os.getenv("GROQ_API_KEY", ""))  # Get API key from environment variable
 
 def groq_predict_label(text: str) -> str:
     """Classify a message using the Groq LLM."""
