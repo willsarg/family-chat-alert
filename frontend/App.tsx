@@ -6,11 +6,12 @@
  */
 
 import React from 'react';
+import 'react-native-gesture-handler';
 import {Provider} from 'react-redux';
 import AppNavigator from './src/navigation/AppNavigator';
 import {store} from './src/store';
 
-function App(): React.JSX.Element {
+const App = () => {
   // const isDarkMode = useColorScheme() === 'dark';
 
   // const backgroundStyle = {
@@ -33,6 +34,6 @@ function App(): React.JSX.Element {
       <AppNavigator />
     </Provider>
   );
-}
+};
 
 export default App;
