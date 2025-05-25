@@ -1,10 +1,11 @@
 from flask import Flask
+from .routes import bp as api_bp
+from pathlib import Path
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_pyfile("../.env")   # or use python-dotenv
-
-    from .routes import bp as api_bp
+    env_path = Path(__file__).parent.parent / ".env"
+    app.config.from_pyfile(str(env_path))
     app.register_blueprint(api_bp, url_prefix="/api")
 
     return app
