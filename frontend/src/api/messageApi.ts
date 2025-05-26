@@ -1,9 +1,5 @@
 import axios from 'axios';
-import {
-  evaluateMessageRisk,
-  getRiskExplanation,
-  type RiskEvaluation,
-} from '../utils/riskKeywords';
+import {type RiskEvaluation} from '../utils/riskKeywords';
 
 // Types based on messageformat.json
 interface Message {
@@ -21,33 +17,34 @@ interface MessageEvaluation {
   keyword_evaluation?: RiskEvaluation;
 }
 
-const API_ENDPOINT =
-  'https://family-chat-alert.onrender.com/api/receiveTest:5001';
+const API_ENDPOINT = 'https://family-chat-alert.onrender.com/api/receiveText';
 
 /**
- * Evaluates and sends a message to the API endpoint
- * @param message The message to evaluate
+ * Sends a message and its chat context to the API endpoint for evaluation
+ * @param message The new message to evaluate
  * @param phoneNumber The phone number associated with the message
+ * @param chatHistory Array of previous messages in the chat for context
  * @returns Promise with the evaluation result
  */
 export const evaluateMessage = async (
   message: string,
   phoneNumber: string,
+  chatHistory: Message[] = [], // Optional chat history, defaults to empty array
 ): Promise<MessageEvaluation> => {
   try {
-    // First perform keyword-based risk evaluation
-    const keywordEvaluation = evaluateMessageRisk(message);
-    const riskExplanation = getRiskExplanation(keywordEvaluation);
+    console.log('Starting message evaluation for:', {
+      message,
+      phoneNumber,
+      chatHistoryLength: chatHistory.length,
+    });
 
-    // Create the message evaluation payload
+    // Create payload with the new message and chat history
     const payload: MessageEvaluation = {
       number: phoneNumber,
-      risk_level: keywordEvaluation.riskLevel, // Use keyword evaluation risk level
-      flagged: keywordEvaluation.isRisky, // Use keyword evaluation flag status
-      flag_label: keywordEvaluation.isRisky ? 'suspicious_content' : undefined,
-      risk_explanation: riskExplanation,
-      keyword_evaluation: keywordEvaluation,
+      risk_level: 'low', // Default value, will be overridden by API
+      flagged: false, // Default value, will be overridden by API
       messages: [
+        ...chatHistory, // Include previous messages
         {
           message,
           timestamp: new Date().toISOString(),
@@ -55,40 +52,34 @@ export const evaluateMessage = async (
       ],
     };
 
-    // Send the message to the API endpoint
+    // Send the message and context to the API endpoint
     const response = await axios.post(API_ENDPOINT, payload);
 
-    // Combine API response with our keyword evaluation
     const apiEvaluation = response.data as MessageEvaluation;
 
-    // If API flags the message as more risky than our keyword evaluation,
-    // use the API's risk level and flag status
-    if (
-      apiEvaluation.risk_level === 'high' ||
-      (apiEvaluation.risk_level === 'medium' &&
-        keywordEvaluation.riskLevel === 'low')
-    ) {
-      return {
-        ...apiEvaluation,
-        risk_explanation: riskExplanation,
-        keyword_evaluation: keywordEvaluation,
-      };
+    return apiEvaluation;
+  } catch (error) {
+    console.error('Error sending message to API:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers,
+        },
+      });
     }
 
-    // Otherwise, use our keyword evaluation results
-    return payload;
-  } catch (error) {
-    console.error('Error evaluating message:', error);
-    // If API call fails, still return our keyword evaluation
-    const keywordEvaluation = evaluateMessageRisk(message);
+    // Return a basic evaluation in case of error
     return {
       number: phoneNumber,
-      risk_level: keywordEvaluation.riskLevel,
-      flagged: keywordEvaluation.isRisky,
-      flag_label: keywordEvaluation.isRisky ? 'suspicious_content' : undefined,
-      risk_explanation: getRiskExplanation(keywordEvaluation),
-      keyword_evaluation: keywordEvaluation,
+      risk_level: 'low',
+      flagged: false,
       messages: [
+        ...chatHistory,
         {
           message,
           timestamp: new Date().toISOString(),

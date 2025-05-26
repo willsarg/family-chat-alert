@@ -1,5 +1,6 @@
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {evaluateMessage} from '../../api/messageApi';
+import {RootState} from '../../store';
 import {sampleChats} from './sampleData';
 import {ChatEntity, ChatState, Message} from './types';
 
@@ -70,8 +71,14 @@ export const {setChat, addMessage, updateRiskLevel, updateFlagStatus} =
 // Add new thunk action for evaluating messages
 export const evaluateAndAddMessage = createAsyncThunk(
   'chat/evaluateAndAddMessage',
-  async ({number, message}: {number: string; message: string}, {dispatch}) => {
+  async (
+    {number, message}: {number: string; message: string},
+    {dispatch, getState},
+  ) => {
     try {
+      const state = getState() as RootState;
+      const chatHistory = state.chat[number]?.messages || [];
+
       // First add the message to the chat state
       dispatch(
         addMessage({
@@ -83,8 +90,8 @@ export const evaluateAndAddMessage = createAsyncThunk(
         }),
       );
 
-      // Evaluate the message using our API
-      const evaluation = await evaluateMessage(message, number);
+      // Evaluate the message using our API with chat history
+      const evaluation = await evaluateMessage(message, number, chatHistory);
 
       // Update the chat state with the evaluation results
       dispatch(
