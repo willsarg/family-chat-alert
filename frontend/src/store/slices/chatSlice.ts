@@ -1,4 +1,6 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {evaluateMessage} from '../../api/messageApi';
+import {RootState} from '../../store';
 import {sampleChats} from './sampleData';
 import {ChatEntity, ChatState, Message} from './types';
 
@@ -65,5 +67,56 @@ const chatSlice = createSlice({
 
 export const {setChat, addMessage, updateRiskLevel, updateFlagStatus} =
   chatSlice.actions;
+
+// Add new thunk action for evaluating messages
+export const evaluateAndAddMessage = createAsyncThunk(
+  'chat/evaluateAndAddMessage',
+  async (
+    {number, message}: {number: string; message: string},
+    {dispatch, getState},
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const chatHistory = state.chat[number]?.messages || [];
+
+      // First add the message to the chat state
+      dispatch(
+        addMessage({
+          number,
+          message: {
+            message,
+            timestamp: new Date().toISOString(),
+          },
+        }),
+      );
+
+      // Evaluate the message using our API with chat history
+      const evaluation = await evaluateMessage(message, number, chatHistory);
+
+      // Update the chat state with the evaluation results
+      dispatch(
+        updateRiskLevel({
+          number,
+          risk_level: evaluation.risk_level,
+        }),
+      );
+
+      if (evaluation.flagged) {
+        dispatch(
+          updateFlagStatus({
+            number,
+            flagged: evaluation.flagged,
+            flag_label: evaluation.flag_label || '',
+          }),
+        );
+      }
+
+      return evaluation;
+    } catch (error) {
+      console.error('Error evaluating message:', error);
+      throw error;
+    }
+  },
+);
 
 export default chatSlice.reducer;

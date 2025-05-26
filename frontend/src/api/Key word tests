@@ -1,0 +1,31 @@
+'ll provide you with a variety of test messages that cover different risk levels and categories. These messages range from safe to highly suspicious, and I'll explain what should trigger in each case:
+
+Safe Messages (No Risk):
+"Hi Mom, how are you doing today?"
+"Can we meet for lunch tomorrow?"
+"Don't forget to take your medicine"
+"Happy birthday! Hope you have a great day"
+
+Low Risk Messages (1 category, 1-2 keywords):
+"Please verify your email address for our newsletter"
+"Your account has been created successfully"
+"Click here to view your order status"
+"Your package will be delivered in 24 hours"
+
+Medium Risk Messages (2 categories or 3-4 keywords):
+"URGENT: Your account needs verification. Click here to verify now"
+"Your account will be suspended in 48 hours if you don't verify your identity"
+"Please confirm your phone number and verify your account immediately"
+"Unusual activity detected. Verify your login now to prevent account deletion"
+
+High Risk Messages (3+ categories or 5+ keywords):
+"URGENT: Your bank account has been suspended. Click here to verify your identity and confirm your password immediately. Your account will be deleted in 24 hours if you don't act now"
+"EMERGENCY: Unusual activity detected on your credit card. Verify your account now to prevent unauthorized access. Your card will be blocked in 48 hours. Click here to confirm your identity and verify your login"
+"Your social security number needs verification. This is your last warning. Click here to confirm your identity and verify your account. Your benefits will be suspended if you don't act immediately"
+"URGENT: Your crypto account has suspicious activity. Verify your identity now to prevent account deletion. Click here to confirm your password and verify your login. Your investment will be locked in 24 hours"
+
+Mixed Messages (combining safe and risky content):
+"Hi Mom, I need you to verify your email for the family chat. Love you!"
+"Happy birthday! By the way, your account needs verification. Click here to confirm"
+"Don't forget your medicine. Also, please verify your phone number for the pharmacy"
+"Family dinner tomorrow at 7pm. P.S. Your bank account needs immediate verification"
